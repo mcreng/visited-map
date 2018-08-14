@@ -1,6 +1,6 @@
 # Visited Map
 
-This is an interactive Python3 app for showing a world map of visited countries. A PyQt5 GUI is planned to be implemented.
+This is an interactive Python3 app for showing a world map of visited countries. 
 
 ## Current Progress
 
@@ -8,10 +8,15 @@ The `map.py` is responsible to plot the world map. When the script is called, th
 
 ![default_world](https://raw.githubusercontent.com/mcreng/VisitedMap/master/docs/default_world.png)
 
-The script supports the function `fill_countries(country_names)`. Upon inputting a list of country names, the countries are highlighted in the output world map.
-
-```Python
->>> fill_countries(['China', 'Australia', 'Japan'])
-```
+Upon clicking on the respective countries, they are highlighted.
 
 ![updated_world](https://raw.githubusercontent.com/mcreng/VisitedMap/master/docs/updated_world.png)
+
+## Work List
+
+- [x] Generate world map
+- [x] Highlight selected world map
+- [x] Build a Qt app
+- [ ] Find a method to compile app into any environment
+- [ ] Save/load data to resume progress for map
+- [ ] Infinite scroll for map
