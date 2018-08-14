@@ -1,26 +1,16 @@
-import sys, time
+# -*- coding: utf-8 -*-
+"""
+@author: mcreng
+"""
+
+import sys
 import itertools
 import cartopy
 import cartopy.io.shapereader as shpreader
 from matplotlib.figure import Figure
 from shapely.geometry import Point
 from matplotlib.backends.qt_compat import QtCore, QtWidgets, is_pyqt5
-
-def timeit(method):
-    def timed(*args, **kw):
-        ts = time.time()
-        result = method(*args, **kw)
-        te = time.time()
-
-        if 'log_time' in kw:
-            name = kw.get('log_name', method.__name__.upper())
-            kw['log_time'][name] = int((te - ts) * 1000)
-        else:
-            print('%r  %2.2f ms' % \
-                  (method.__name__, (te - ts) * 1000))
-        return result
-
-    return timed
+from util import timeit
 
 if is_pyqt5():
     from matplotlib.backends.backend_qt5agg import (

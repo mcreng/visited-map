@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+@author: mcreng
+"""
+
 import cartopy
 import matplotlib.pyplot as plt
 import cartopy.io.shapereader as shpreader
