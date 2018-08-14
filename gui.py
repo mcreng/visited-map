@@ -1,10 +1,26 @@
-import sys
+import sys, time
+import itertools
 import cartopy
 import cartopy.io.shapereader as shpreader
-import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
-import itertools
+from shapely.geometry import Point
 from matplotlib.backends.qt_compat import QtCore, QtWidgets, is_pyqt5
+
+def timeit(method):
+    def timed(*args, **kw):
+        ts = time.time()
+        result = method(*args, **kw)
+        te = time.time()
+
+        if 'log_time' in kw:
+            name = kw.get('log_name', method.__name__.upper())
+            kw['log_time'][name] = int((te - ts) * 1000)
+        else:
+            print('%r  %2.2f ms' % \
+                  (method.__name__, (te - ts) * 1000))
+        return result
+
+    return timed
 
 if is_pyqt5():
     from matplotlib.backends.backend_qt5agg import (
@@ -13,7 +29,6 @@ else:
     from matplotlib.backends.backend_qt4agg import (
         FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 
-
 class ApplicationWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super(ApplicationWindow, self).__init__()
@@ -21,28 +36,48 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(self._main)
         layout = QtWidgets.QVBoxLayout(self._main)
 
-        canvas = FigureCanvas(Figure(figsize=(10, 6)))
-        layout.addWidget(canvas)
-        self.addToolBar(NavigationToolbar(canvas, self))        
+        self.canvas = FigureCanvas(Figure(figsize=(10, 6)))
+        layout.addWidget(self.canvas)
+        self.addToolBar(NavigationToolbar(self.canvas, self))        
 
-        ax = canvas.figure.add_subplot(1, 1, 1, projection=cartopy.crs.PlateCarree())
-        ax.stock_img()
-        ax.add_feature(cartopy.feature.LAND, zorder=1)
-        ax.add_feature(cartopy.feature.BORDERS, zorder=2)
-        ax.add_feature(cartopy.feature.COASTLINE, zorder=2)
+        self.ax = self.canvas.figure.add_subplot(1, 1, 1, projection=cartopy.crs.PlateCarree())
+        self.ax.stock_img()
+        self.ax.add_feature(cartopy.feature.LAND, zorder=1)
+        self.ax.add_feature(cartopy.feature.BORDERS, zorder=2)
+        self.ax.add_feature(cartopy.feature.COASTLINE, zorder=2)
 
         self.land = cartopy.feature.LAND
         self.countries = shpreader.Reader(shpreader.natural_earth(resolution='110m',
                                                                   category='cultural',
                                                                   name='admin_0_countries')).records()
 
-        canvas.mpl_connect('button_press_event', self.on_click)
-        
+        self.canvas.mpl_connect('button_press_event', self.on_click)
+    @timeit   
     def on_click(self, event):
-        print('You pressed', event.button, event.xdata, event.ydata)
+        local_countries, self.countries = itertools.tee(self.countries)
+        point = Point(event.xdata, event.ydata)
+        country = next(itertools.filterfalse(lambda country: not country.geometry.intersects(point), local_countries))
+        print(country.attributes['NAME_LONG'])
+        self.fill_country(country)
+    @timeit    
+    def fill_country(self, country):
+        self.ax.clear()
+        geom = country.geometry
+        self.ax.stock_img()
+        self.land = self.land.geometries()
+        self.land = (l.difference(geom) for l in self.land)
+        self.land = cartopy.feature.ShapelyFeature(self.land, cartopy.crs.PlateCarree(), facecolor=cartopy.feature.COLORS['land'])
+        self.ax.add_feature(self.land, zorder=1)
+        self.ax.add_feature(cartopy.feature.BORDERS, zorder=2)
+        self.ax.add_feature(cartopy.feature.COASTLINE, zorder=2)
+        self.canvas.draw()
+        self.canvas.flush_events()
 
 if __name__ == "__main__":
-    qapp = QtWidgets.QApplication(sys.argv)
+    if not QtWidgets.QApplication.instance():
+        qapp = QtWidgets.QApplication(sys.argv)
+    else:
+        qapp = QtWidgets.QApplication.instance() 
     app = ApplicationWindow()
     app.show()
     qapp.exec_()
