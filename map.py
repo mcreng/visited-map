@@ -3,18 +3,6 @@ import matplotlib.pyplot as plt
 import cartopy.io.shapereader as shpreader
 import itertools
 
-# =============================================================================
-# import os
-# source_proj = ccrs.PlateCarree()
-# fname = os.path.join(config["repo_data_dir"],
-#                      'raster', 'natural_earth',
-#                      '50-natural-earth-1-downsampled.png')
-# 
-# return self.imshow(imread(fname), origin='upper',
-#                    transform=source_proj,
-#                    extent=[-180, 180, -90, 90])
-# =============================================================================
-
 countries_shp = shpreader.natural_earth(resolution='110m',
                                         category='cultural', name='admin_0_countries')
 
