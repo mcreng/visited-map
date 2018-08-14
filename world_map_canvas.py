@@ -19,14 +19,14 @@ else:
         FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 
 class WorldMapCanvas(FigureCanvas):
-    def __init__(self, parent=None, width=10, height=6, dpi=100):
+    def __init__(self, parent=None, width=8, height=6, dpi=150):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self.ax = fig.add_subplot(1, 1, 1, projection=cartopy.crs.PlateCarree())
         self.ax.stock_img()
         self.ax.add_feature(cartopy.feature.LAND, zorder=1)
         self.ax.add_feature(cartopy.feature.BORDERS, zorder=2)
         self.ax.add_feature(cartopy.feature.COASTLINE, zorder=2)
-        
+        fig.tight_layout()
 
         FigureCanvas.__init__(self, fig)
         self.setParent(parent)

@@ -4,7 +4,7 @@
 """
 
 import sys
-from matplotlib.backends.qt_compat import QtWidgets, is_pyqt5
+from matplotlib.backends.qt_compat import QtGui, QtWidgets, is_pyqt5
 from util import timeit
 from world_map_canvas import WorldMapCanvas
 
@@ -21,6 +21,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self._main = QtWidgets.QWidget()
         self.setCentralWidget(self._main)
         layout = QtWidgets.QVBoxLayout(self._main)
+        self.setWindowTitle('Visited Countries World Map')
+        self.setWindowIcon(QtGui.QIcon('icon.ico'))
 
         self.canvas = WorldMapCanvas()
         layout.addWidget(self.canvas)
