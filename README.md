@@ -8,7 +8,7 @@ The `map.py` is responsible to plot the world map. When the script is called, th
 
 ![default_world](https://raw.githubusercontent.com/mcreng/VisitedMap/master/docs/default_world.png)
 
-Upon clicking on the respective countries, they are highlighted.
+Upon clicking on the respective countries (in this example, China), they are highlighted.
 
 ![updated_world](https://raw.githubusercontent.com/mcreng/VisitedMap/master/docs/updated_world.png)
 
