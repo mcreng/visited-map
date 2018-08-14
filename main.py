@@ -4,14 +4,9 @@
 """
 
 import sys
-import itertools
-import cartopy
-import cartopy.io.shapereader as shpreader
-from matplotlib.figure import Figure
-from shapely.geometry import Point
-from matplotlib.backends.qt_compat import QtCore, QtWidgets, is_pyqt5
+from matplotlib.backends.qt_compat import QtWidgets, is_pyqt5
 from util import timeit
-from world_map_canvas import *
+from world_map_canvas import WorldMapCanvas
 
 if is_pyqt5():
     from matplotlib.backends.backend_qt5agg import (
