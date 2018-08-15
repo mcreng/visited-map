@@ -28,7 +28,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         layout.addWidget(self.canvas)
         self.addToolBar(NavigationToolbar(self.canvas, self))        
         self.canvas.mpl_connect('button_press_event', self.on_click)
-    @timeit   
+
     def on_click(self, event):
         self.canvas.on_click(event)
 

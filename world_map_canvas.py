@@ -48,20 +48,35 @@ class WorldMapCanvas(FigureCanvas):
         point = Point(event.xdata, event.ydata)
         country = next(itertools.filterfalse(lambda country: not country.geometry.intersects(point), local_countries))
         print(country.attributes['NAME_LONG'])
-        self.fill_country(country)
+        self.fill_country(country, event.button)
 
     @timeit    
-    def fill_country(self, country):
-        ext = self.ax.get_extent()
-        self.ax.clear()
-        geom = country.geometry
-        self.ax.stock_img()
-        self.land = self.land.geometries()
-        self.land = (l.difference(geom) for l in self.land)
-        self.land = cartopy.feature.ShapelyFeature(self.land, cartopy.crs.PlateCarree(), facecolor=cartopy.feature.COLORS['land'])
-        self.ax.add_feature(self.land, zorder=1)
-        self.ax.add_feature(cartopy.feature.BORDERS, zorder=2)
-        self.ax.add_feature(cartopy.feature.COASTLINE, zorder=2)
-        self.ax.set_extent(ext)
-        self.draw()
-        self.flush_events()
+    def fill_country(self, country, button):
+        if button == 1:
+             ext = self.ax.get_extent()
+             self.ax.clear()
+             geom = country.geometry
+             self.ax.stock_img()
+             self.land = self.land.geometries()
+             self.land = (l.difference(geom) for l in self.land)
+             self.land = cartopy.feature.ShapelyFeature(self.land, cartopy.crs.PlateCarree(), facecolor=cartopy.feature.COLORS['land'])
+             self.ax.add_feature(self.land, zorder=1)
+             self.ax.add_feature(cartopy.feature.BORDERS, zorder=2)
+             self.ax.add_feature(cartopy.feature.COASTLINE, zorder=2)
+             self.ax.set_extent(ext)
+             self.draw()
+             self.flush_events()
+        elif button == 3:
+             ext = self.ax.get_extent()
+             self.ax.clear()
+             geom = country.geometry
+             self.ax.stock_img()
+             self.land = self.land.geometries()
+             self.land = itertools.chain(self.land, geom)
+             self.land = cartopy.feature.ShapelyFeature(self.land, cartopy.crs.PlateCarree(), facecolor=cartopy.feature.COLORS['land'])
+             self.ax.add_feature(self.land, zorder=1)
+             self.ax.add_feature(cartopy.feature.BORDERS, zorder=2)
+             self.ax.add_feature(cartopy.feature.COASTLINE, zorder=2)
+             self.ax.set_extent(ext)
+             self.draw()
+             self.flush_events()
