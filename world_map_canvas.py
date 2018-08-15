@@ -20,15 +20,15 @@ else:
 
 class WorldMapCanvas(FigureCanvas):
     def __init__(self, parent=None, width=8, height=6, dpi=150):
-        fig = Figure(figsize=(width, height), dpi=dpi)
-        self.ax = fig.add_subplot(1, 1, 1, projection=cartopy.crs.PlateCarree())
+        self.fig = Figure(figsize=(width, height), dpi=dpi)
+        self.ax = self.fig.add_subplot(1, 1, 1, projection=cartopy.crs.PlateCarree())
         self.ax.stock_img()
         self.ax.add_feature(cartopy.feature.LAND, zorder=1)
         self.ax.add_feature(cartopy.feature.BORDERS, zorder=2)
         self.ax.add_feature(cartopy.feature.COASTLINE, zorder=2)
-        fig.tight_layout()
+#        fig.tight_layout()
 
-        FigureCanvas.__init__(self, fig)
+        FigureCanvas.__init__(self, self.fig)
         self.setParent(parent)
 
         FigureCanvas.setSizePolicy(self,
@@ -63,11 +63,13 @@ class WorldMapCanvas(FigureCanvas):
              self.ax.add_feature(self.land, zorder=1)
              self.ax.add_feature(cartopy.feature.BORDERS, zorder=2)
              self.ax.add_feature(cartopy.feature.COASTLINE, zorder=2)
-             self.ax.set_extent(ext)
+             self.ax.set_xlim([ext[0], ext[1]])
+             self.ax.set_ylim([ext[2], ext[3]])
              self.draw()
              self.flush_events()
         elif button == 3:
-             ext = self.ax.get_extent()
+             ext = self.ax.get_extent(crs=cartopy.crs.PlateCarree())
+             print(ext)
              self.ax.clear()
              geom = country.geometry
              self.ax.stock_img()
@@ -77,6 +79,7 @@ class WorldMapCanvas(FigureCanvas):
              self.ax.add_feature(self.land, zorder=1)
              self.ax.add_feature(cartopy.feature.BORDERS, zorder=2)
              self.ax.add_feature(cartopy.feature.COASTLINE, zorder=2)
-             self.ax.set_extent(ext)
+             self.ax.set_xlim([ext[0], ext[1]])
+             self.ax.set_ylim([ext[2], ext[3]])
              self.draw()
              self.flush_events()
