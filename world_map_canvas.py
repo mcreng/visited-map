@@ -52,6 +52,7 @@ class WorldMapCanvas(FigureCanvas):
 
     @timeit    
     def fill_country(self, country):
+        ext = self.ax.get_extent()
         self.ax.clear()
         geom = country.geometry
         self.ax.stock_img()
@@ -61,5 +62,6 @@ class WorldMapCanvas(FigureCanvas):
         self.ax.add_feature(self.land, zorder=1)
         self.ax.add_feature(cartopy.feature.BORDERS, zorder=2)
         self.ax.add_feature(cartopy.feature.COASTLINE, zorder=2)
+        self.ax.set_extent(ext)
         self.draw()
         self.flush_events()
