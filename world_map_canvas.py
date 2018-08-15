@@ -27,6 +27,18 @@ class WorldMapCanvas(FigureCanvas):
         self.ax.add_feature(cartopy.feature.BORDERS, zorder=2)
         self.ax.add_feature(cartopy.feature.COASTLINE, zorder=2)
         fig.tight_layout()
+        
+        def my_format_coord(x, y):
+             lon, lat = cartopy.crs.Geodetic().transform_point(x, y, self.ax.projection)
+
+             ns = 'N' if lat >= 0.0 else 'S'
+             ew = 'E' if lon >= 0.0 else 'W'
+     
+             return u'%.4g, %.4g (%f\u00b0%s, %f\u00b0%s)' % \
+                    (x, y, abs(lat), ns, abs(lon), ew) + ' ' + \
+                    self.find_country(x, y).attributes['NAME_LONG']
+        
+        self.ax.format_coord = my_format_coord
 
         FigureCanvas.__init__(self, fig)
         self.setParent(parent)
@@ -44,9 +56,7 @@ class WorldMapCanvas(FigureCanvas):
 
     @timeit   
     def on_click(self, event):
-        local_countries, self.countries = itertools.tee(self.countries)
-        point = Point(event.xdata, event.ydata)
-        country = next(itertools.filterfalse(lambda country: not country.geometry.intersects(point), local_countries))
+        country = self.find_country(event.xdata, event.ydata)
         print(country.attributes['NAME_LONG'])
         self.fill_country(country, event.button)
 
@@ -83,3 +93,10 @@ class WorldMapCanvas(FigureCanvas):
              self.ax.set_ylim([ext[2], ext[3]])
              self.draw()
              self.flush_events()
+
+    @timeit
+    def find_country(self, x, y):
+        local_countries, self.countries = itertools.tee(self.countries)
+        point = Point(x, y)
+        country = next(itertools.filterfalse(lambda country: not country.geometry.intersects(point), local_countries))
+        return country
