@@ -7,7 +7,7 @@ import itertools, functools
 import cartopy
 import cartopy.io.shapereader as shpreader
 from matplotlib.figure import Figure
-from shapely.geometry import Point
+from shapely.geometry import Point, Polygon
 from matplotlib.backends.qt_compat import QtWidgets, is_pyqt5
 from util import timeit
 import file_reader as fr
@@ -82,7 +82,7 @@ class WorldMapCanvas(FigureCanvas):
             # Get current extent so we can apply again after clearing axis
             ext = self.ax.get_extent()
             # Union all geometric objects
-            geom = functools.reduce(lambda a, b: a.union(b), (c.geometry for c in country))
+            geom = functools.reduce(lambda a, b: a.union(b), (c.geometry for c in country), Polygon())
             # Redraw all
             self.ax.clear()
             self.ax.stock_img()
@@ -107,7 +107,7 @@ class WorldMapCanvas(FigureCanvas):
             # Get current extent so we can apply again after clearing axis
             ext = self.ax.get_extent(crs=cartopy.crs.PlateCarree())
             # Union all geometric objects
-            geom = functools.reduce(lambda a, b: a.union(b), (c.geometry for c in country))
+            geom = functools.reduce(lambda a, b: a.union(b), (c.geometry for c in country), Polygon())
             # Redraw all
             self.ax.clear()
             self.ax.stock_img()
