@@ -28,18 +28,6 @@ class WorldMapCanvas(FigureCanvas):
         self.ax.add_feature(cartopy.feature.COASTLINE, zorder=2)
         fig.tight_layout()
         
-        def my_format_coord(x, y):
-             lon, lat = cartopy.crs.Geodetic().transform_point(x, y, self.ax.projection)
-
-             ns = 'N' if lat >= 0.0 else 'S'
-             ew = 'E' if lon >= 0.0 else 'W'
-     
-             return u'%.4g, %.4g (%f\u00b0%s, %f\u00b0%s)' % \
-                    (x, y, abs(lat), ns, abs(lon), ew) + ' ' + \
-                    self.find_country(x, y).attributes['NAME_LONG']
-        
-        self.ax.format_coord = my_format_coord
-
         FigureCanvas.__init__(self, fig)
         self.setParent(parent)
 
@@ -59,6 +47,9 @@ class WorldMapCanvas(FigureCanvas):
         country = self.find_country(event.xdata, event.ydata)
         print(country.attributes['NAME_LONG'])
         self.fill_country(country, event.button)
+        
+    def on_move(self, event):
+        self.ax.images[0].format_cursor_data = lambda data: self.find_country(event.xdata, event.ydata).attributes['NAME_LONG']
 
     @timeit    
     def fill_country(self, country, button):
