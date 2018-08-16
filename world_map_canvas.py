@@ -10,8 +10,7 @@ from matplotlib.figure import Figure
 from shapely.geometry import Point
 from matplotlib.backends.qt_compat import QtWidgets, is_pyqt5
 from util import timeit
-import warnings
-warnings.filterwarnings("ignore")
+import file_reader as fr
 
 if is_pyqt5():
     from matplotlib.backends.backend_qt5agg import (
@@ -43,14 +42,19 @@ class WorldMapCanvas(FigureCanvas):
         self.countries = shpreader.Reader(shpreader.natural_earth(resolution='110m',
                                                                   category='cultural',
                                                                   name='admin_0_countries')).records()
+        
+        self.fr = fr.FileReader('test.txt')
+        self.sel_countries = self.fr.read_countries()
+        for country in self.find_country_a3(self.sel_countries):
+             self.fill_country(country, 1)
 
     def on_click(self, event):
-        country = self.find_country(event.xdata, event.ydata)
+        country = self.find_country_xy(event.xdata, event.ydata)
         print(country.attributes['NAME_LONG'])
         self.fill_country(country, event.button)
         
     def on_move(self, event):
-        self.ax.images[0].format_cursor_data = lambda data: self.find_country(event.xdata, event.ydata).attributes['NAME_LONG']
+        self.ax.images[0].format_cursor_data = lambda data: self.find_country_xy(event.xdata, event.ydata).attributes['NAME_LONG']
 
     def fill_country(self, country, button):
         if button == 1:
@@ -68,6 +72,9 @@ class WorldMapCanvas(FigureCanvas):
              self.ax.set_ylim([ext[2], ext[3]])
              self.draw()
              self.flush_events()
+             self.sel_countries.append(country.attributes['BRK_A3'])
+             self.sel_countries = list(set(self.sel_countries))
+                  
         elif button == 3:
              ext = self.ax.get_extent(crs=cartopy.crs.PlateCarree())
              print(ext)
@@ -84,9 +91,17 @@ class WorldMapCanvas(FigureCanvas):
              self.ax.set_ylim([ext[2], ext[3]])
              self.draw()
              self.flush_events()
-
-    def find_country(self, x, y):
+             self.sel_countries.remove(country.attributes['BRK_A3'])
+             
+        self.fr.write_countries(self.sel_countries)
+     
+    def find_country_xy(self, x, y):
         local_countries, self.countries = itertools.tee(self.countries)
         point = Point(x, y)
         country = next(itertools.filterfalse(lambda country: not country.geometry.intersects(point), local_countries))
+        return country
+   
+    def find_country_a3(self, postals):
+        local_countries, self.countries = itertools.tee(self.countries)
+        country = itertools.filterfalse(lambda country: country.attributes['BRK_A3'] not in postals, local_countries)
         return country
