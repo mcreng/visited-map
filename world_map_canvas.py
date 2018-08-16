@@ -3,12 +3,13 @@
 @author: mcreng
 """
 
-import itertools
+import itertools, functools
 import cartopy
 import cartopy.io.shapereader as shpreader
 from matplotlib.figure import Figure
 from shapely.geometry import Point
 from matplotlib.backends.qt_compat import QtWidgets, is_pyqt5
+import types
 from util import timeit
 import file_reader as fr
 
@@ -36,7 +37,6 @@ class WorldMapCanvas(FigureCanvas):
                                    QtWidgets.QSizePolicy.Expanding,
                                    QtWidgets.QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
-
     
         self.land = cartopy.feature.LAND
         self.countries = shpreader.Reader(shpreader.natural_earth(resolution='110m',
@@ -45,8 +45,8 @@ class WorldMapCanvas(FigureCanvas):
         
         self.fr = fr.FileReader('test.txt')
         self.sel_countries = self.fr.read_countries()
-        for country in self.find_country_a3(self.sel_countries):
-             self.fill_country(country, 1)
+        self.temp = self.find_country_a3(self.sel_countries)
+        self.fill_country(self.find_country_a3(self.sel_countries), 1)
 
     def on_click(self, event):
         country = self.find_country_xy(event.xdata, event.ydata)
@@ -57,10 +57,13 @@ class WorldMapCanvas(FigureCanvas):
         self.ax.images[0].format_cursor_data = lambda data: self.find_country_xy(event.xdata, event.ydata).attributes['NAME_LONG']
 
     def fill_country(self, country, button):
+        if not isinstance(country, itertools.filterfalse):
+             country = [country]
         if button == 1:
              ext = self.ax.get_extent()
              self.ax.clear()
-             geom = country.geometry
+#             geom = country.geometry
+             geom = functools.reduce(lambda a, b: a.union(b), (c.geometry for c in country))
              self.ax.stock_img()
              self.land = self.land.geometries()
              self.land = (l.difference(geom) for l in self.land)
@@ -72,14 +75,16 @@ class WorldMapCanvas(FigureCanvas):
              self.ax.set_ylim([ext[2], ext[3]])
              self.draw()
              self.flush_events()
-             self.sel_countries.append(country.attributes['BRK_A3'])
+             for c in country:
+                  self.sel_countries.append(c.attributes['BRK_A3'])
              self.sel_countries = list(set(self.sel_countries))
                   
         elif button == 3:
              ext = self.ax.get_extent(crs=cartopy.crs.PlateCarree())
              print(ext)
              self.ax.clear()
-             geom = country.geometry
+#             geom = country.geometry
+             geom = functools.reduce(lambda a, b: a.union(b), (c.geometry for c in country))
              self.ax.stock_img()
              self.land = self.land.geometries()
              self.land = itertools.chain(self.land, geom)
@@ -91,7 +96,8 @@ class WorldMapCanvas(FigureCanvas):
              self.ax.set_ylim([ext[2], ext[3]])
              self.draw()
              self.flush_events()
-             self.sel_countries.remove(country.attributes['BRK_A3'])
+             for c in country:
+                  self.sel_countries.remove(c.attributes['BRK_A3'])
              
         self.fr.write_countries(self.sel_countries)
      
@@ -100,7 +106,7 @@ class WorldMapCanvas(FigureCanvas):
         point = Point(x, y)
         country = next(itertools.filterfalse(lambda country: not country.geometry.intersects(point), local_countries))
         return country
-   
+
     def find_country_a3(self, postals):
         local_countries, self.countries = itertools.tee(self.countries)
         country = itertools.filterfalse(lambda country: country.attributes['BRK_A3'] not in postals, local_countries)
