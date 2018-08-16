@@ -10,6 +10,8 @@ from matplotlib.figure import Figure
 from shapely.geometry import Point
 from matplotlib.backends.qt_compat import QtWidgets, is_pyqt5
 from util import timeit
+import warnings
+warnings.filterwarnings("ignore")
 
 if is_pyqt5():
     from matplotlib.backends.backend_qt5agg import (
@@ -42,7 +44,6 @@ class WorldMapCanvas(FigureCanvas):
                                                                   category='cultural',
                                                                   name='admin_0_countries')).records()
 
-    @timeit   
     def on_click(self, event):
         country = self.find_country(event.xdata, event.ydata)
         print(country.attributes['NAME_LONG'])
@@ -51,7 +52,6 @@ class WorldMapCanvas(FigureCanvas):
     def on_move(self, event):
         self.ax.images[0].format_cursor_data = lambda data: self.find_country(event.xdata, event.ydata).attributes['NAME_LONG']
 
-    @timeit    
     def fill_country(self, country, button):
         if button == 1:
              ext = self.ax.get_extent()
@@ -85,7 +85,6 @@ class WorldMapCanvas(FigureCanvas):
              self.draw()
              self.flush_events()
 
-    @timeit
     def find_country(self, x, y):
         local_countries, self.countries = itertools.tee(self.countries)
         point = Point(x, y)
