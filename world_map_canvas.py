@@ -7,7 +7,7 @@ import itertools
 import cartopy
 import cartopy.io.shapereader as shpreader
 from matplotlib.figure import Figure
-from shapely.geometry import Point, Polygon
+from shapely.geometry import Point
 from matplotlib.backends.qt_compat import QtWidgets, is_pyqt5
 from util import timeit
 import file_reader as fr
@@ -20,7 +20,6 @@ else:
         FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 
 class WorldMapCanvas(FigureCanvas):
-    @timeit
     def __init__(self, parent=None, width=8, height=6, dpi=150):
         """
         Initialization
@@ -72,8 +71,10 @@ class WorldMapCanvas(FigureCanvas):
         # Updates the value info of screen from top right corner
         # Currently this is a workaround since the '[]' is hardcoded
         # Will wait until new version of matplotlib and change this
-        self.ax.images[0].format_cursor_data = lambda data: self.find_country_xy(event.xdata, event.ydata).attributes['NAME_LONG']
-    @timeit
+        country = self.find_country_xy(event.xdata, event.ydata)
+        if country:
+            self.ax.images[0].format_cursor_data = lambda data: country.attributes['NAME_LONG']
+
     def fill_country(self, country, button):
         """
         Function to fill in countries
@@ -137,9 +138,12 @@ class WorldMapCanvas(FigureCanvas):
         Return country object based on location
         """
         local_countries, self.countries = itertools.tee(self.countries)
-        point = Point(x, y)
-        country = next(itertools.filterfalse(lambda country: not country.geometry.intersects(point), local_countries))
-        return country
+        try:
+            point = Point(x, y)
+            country = next(itertools.filterfalse(lambda country: not country.geometry.intersects(point), local_countries))
+            return country
+        except:
+            return None
 
     def find_country_a3(self, a3):
         """
