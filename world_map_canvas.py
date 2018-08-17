@@ -3,7 +3,7 @@
 @author: mcreng
 """
 
-import itertools, functools, inspect
+import itertools
 import cartopy
 import cartopy.io.shapereader as shpreader
 from matplotlib.figure import Figure
@@ -20,6 +20,7 @@ else:
         FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 
 class WorldMapCanvas(FigureCanvas):
+    @timeit
     def __init__(self, parent=None, width=8, height=6, dpi=150):
         """
         Initialization
@@ -42,10 +43,12 @@ class WorldMapCanvas(FigureCanvas):
         FigureCanvas.updateGeometry(self)
 
         # Initialize some variables we use
-        self.land = cartopy.feature.LAND
         self.countries = shpreader.Reader(shpreader.natural_earth(resolution='110m',
                                                                   category='cultural',
                                                                   name='admin_0_countries')).records()
+        tmp, self.countries = itertools.tee(self.countries)
+        self.land = cartopy.feature.ShapelyFeature((c.geometry for c in tmp), cartopy.crs.PlateCarree(), facecolor=cartopy.feature.COLORS['land'])
+
         # Initialize filereader
         self.fr = fr.FileReader('all.txt')
         # Read file
@@ -70,7 +73,7 @@ class WorldMapCanvas(FigureCanvas):
         # Currently this is a workaround since the '[]' is hardcoded
         # Will wait until new version of matplotlib and change this
         self.ax.images[0].format_cursor_data = lambda data: self.find_country_xy(event.xdata, event.ydata).attributes['NAME_LONG']
-
+    @timeit
     def fill_country(self, country, button):
         """
         Function to fill in countries
@@ -83,15 +86,13 @@ class WorldMapCanvas(FigureCanvas):
             ext = self.ax.get_extent()
             # Duplicate country since it is needed twice
             country, country2 = itertools.tee(country)
-            # Union all geometric objects
-            geom = functools.reduce(lambda a, b: a.union(b), (c.geometry for c in country), Polygon())
             # Redraw all
             self.ax.clear()
             self.ax.stock_img()
             # Find new self.land to print
             self.land = self.land.geometries()
             # Use current land geometry minus the new country geometries
-            self.land = (l.difference(geom) for l in self.land)
+            self.land = (l.difference(g) for l in self.land for g in (c.geometry for c in country))
             self.land = cartopy.feature.ShapelyFeature(self.land, cartopy.crs.PlateCarree(), facecolor=cartopy.feature.COLORS['land'])
             self.ax.add_feature(self.land, zorder=1)
             self.ax.add_feature(cartopy.feature.BORDERS, zorder=2)
@@ -110,15 +111,13 @@ class WorldMapCanvas(FigureCanvas):
             ext = self.ax.get_extent(crs=cartopy.crs.PlateCarree())
             # Duplicate country since it is needed twice
             country, country2 = itertools.tee(country)
-            # Union all geometric objects
-            geom = functools.reduce(lambda a, b: a.union(b), (c.geometry for c in country), Polygon())
             # Redraw all
             self.ax.clear()
             self.ax.stock_img()
             # Find new self.land to print
             self.land = self.land.geometries()
             # Add back the geometric objects by chaining it to iter
-            self.land = itertools.chain(self.land, geom)
+            self.land = itertools.chain(self.land, (c.geometry for c in country))
             self.land = cartopy.feature.ShapelyFeature(self.land, cartopy.crs.PlateCarree(), facecolor=cartopy.feature.COLORS['land'])
             self.ax.add_feature(self.land, zorder=1)
             self.ax.add_feature(cartopy.feature.BORDERS, zorder=2)
