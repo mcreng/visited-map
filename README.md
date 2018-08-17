@@ -8,13 +8,17 @@ The `world_map_canvas.py` is responsible to plot the world map. When the script 
 
 ![default_world](https://raw.githubusercontent.com/mcreng/VisitedMap/master/docs/default_world.png)
 
-Upon left clicking on the respective countries (in this example, China), they are highlighted.
+Notice the geographical information listed in the upper right corner. Upon left clicking on the respective countries (in this example, China), they are highlighted.
 
 ![updated_world](https://raw.githubusercontent.com/mcreng/VisitedMap/master/docs/updated_world.png)
 
 Upon right clicking on the countries, they are removed from highlighting.
 
 The app saves the map data in a compressed (`gzip`) text files and they load back when the app is restarted.
+
+This is the complete world map.
+
+![complete_world](https://raw.githubusercontent.com/mcreng/VisitedMap/master/docs/complete_world.PNG)
 
 ## Work List
 

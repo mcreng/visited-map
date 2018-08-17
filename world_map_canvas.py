@@ -3,7 +3,7 @@
 @author: mcreng
 """
 
-import itertools, functools
+import itertools, functools, inspect
 import cartopy
 import cartopy.io.shapereader as shpreader
 from matplotlib.figure import Figure
@@ -47,7 +47,7 @@ class WorldMapCanvas(FigureCanvas):
                                                                   category='cultural',
                                                                   name='admin_0_countries')).records()
         # Initialize filereader
-        self.fr = fr.FileReader('test.txt')
+        self.fr = fr.FileReader('all.txt')
         # Read file
         self.sel_countries = self.fr.read_countries()
         # Fill in those in file
@@ -77,10 +77,12 @@ class WorldMapCanvas(FigureCanvas):
         """
         # Need an iterable
         if not isinstance(country, itertools.filterfalse):
-             country = [country]
+            country = [country]
         if button == 1:
             # Get current extent so we can apply again after clearing axis
             ext = self.ax.get_extent()
+            # Duplicate country since it is needed twice
+            country, country2 = itertools.tee(country)
             # Union all geometric objects
             geom = functools.reduce(lambda a, b: a.union(b), (c.geometry for c in country), Polygon())
             # Redraw all
@@ -99,13 +101,15 @@ class WorldMapCanvas(FigureCanvas):
             self.draw()
             self.flush_events()
             # Append unique country elements to list
-            for c in country:
+            for c in country2:
                 self.sel_countries.append(c.attributes['BRK_A3'])
             self.sel_countries = list(set(self.sel_countries))
 
         elif button == 3:
             # Get current extent so we can apply again after clearing axis
             ext = self.ax.get_extent(crs=cartopy.crs.PlateCarree())
+            # Duplicate country since it is needed twice
+            country, country2 = itertools.tee(country)
             # Union all geometric objects
             geom = functools.reduce(lambda a, b: a.union(b), (c.geometry for c in country), Polygon())
             # Redraw all
@@ -124,7 +128,7 @@ class WorldMapCanvas(FigureCanvas):
             self.draw()
             self.flush_events()
             # Delete entries from list
-            for c in country:
+            for c in country2:
                  self.sel_countries.remove(c.attributes['BRK_A3'])
 
         self.fr.write_countries(self.sel_countries)
