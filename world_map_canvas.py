@@ -3,11 +3,11 @@
 @author: mcreng
 """
 
-import itertools
+import itertools, functools
 import cartopy
 import cartopy.io.shapereader as shpreader
 from matplotlib.figure import Figure
-from shapely.geometry import Point
+from shapely.geometry import Point, Polygon
 from matplotlib.backends.qt_compat import QtWidgets, is_pyqt5
 from util import timeit
 import file_reader as fr
@@ -49,7 +49,7 @@ class WorldMapCanvas(FigureCanvas):
         self.land = cartopy.feature.ShapelyFeature((c.geometry for c in tmp), cartopy.crs.PlateCarree(), facecolor=cartopy.feature.COLORS['land'])
 
         # Initialize filereader
-        self.fr = fr.FileReader('all.txt')
+        self.fr = fr.FileReader('empty.txt')
         # Read file
         self.sel_countries = self.fr.read_countries()
         # Fill in those in file
@@ -81,8 +81,16 @@ class WorldMapCanvas(FigureCanvas):
         """
         # Need an iterable
         if not isinstance(country, itertools.filterfalse):
+            if not country: return
+            print('q13')
             country = [country]
         if button == 1:
+            # check if country is empty
+            tmp, country = itertools.tee(country)
+            try:
+                next(tmp)
+            except StopIteration:
+                return
             # Get current extent so we can apply again after clearing axis
             ext = self.ax.get_extent()
             # Duplicate country since it is needed twice
@@ -92,8 +100,10 @@ class WorldMapCanvas(FigureCanvas):
             self.ax.stock_img()
             # Find new self.land to print
             self.land = self.land.geometries()
+            geom = functools.reduce(lambda a, b: a.union(b), (c.geometry for c in country), Polygon())
+            self.land = (l.difference(geom) for l in self.land)
             # Use current land geometry minus the new country geometries
-            self.land = (l.difference(g) for l in self.land for g in (c.geometry for c in country))
+#            self.land = (l.difference(g) for l in self.land for g in (c.geometry for c in country))
             self.land = cartopy.feature.ShapelyFeature(self.land, cartopy.crs.PlateCarree(), facecolor=cartopy.feature.COLORS['land'])
             self.ax.add_feature(self.land, zorder=1)
             self.ax.add_feature(cartopy.feature.BORDERS, zorder=2)
