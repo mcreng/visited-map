@@ -75,6 +75,13 @@ class WorldMapCanvas(FigureCanvas):
         if country:
             self.ax.images[0].format_cursor_data = lambda data: country.attributes['NAME_LONG']
 
+    def get_new_land(self, country):
+        for l in self.land.geometries():
+            tmp, country = itertools.tee(country)
+            for c in tmp:
+                l = l.difference(c.geometry)
+            yield l
+
     def fill_country(self, country, button):
         """
         Function to fill in countries
@@ -82,7 +89,6 @@ class WorldMapCanvas(FigureCanvas):
         # Need an iterable
         if not isinstance(country, itertools.filterfalse):
             if not country: return
-            print('q13')
             country = [country]
         if button == 1:
             # check if country is empty
@@ -98,13 +104,7 @@ class WorldMapCanvas(FigureCanvas):
             # Redraw all
             self.ax.clear()
             self.ax.stock_img()
-            # Find new self.land to print
-            self.land = self.land.geometries()
-            geom = functools.reduce(lambda a, b: a.union(b), (c.geometry for c in country), Polygon())
-            self.land = (l.difference(geom) for l in self.land)
-            # Use current land geometry minus the new country geometries
-#            self.land = (l.difference(g) for l in self.land for g in (c.geometry for c in country))
-            self.land = cartopy.feature.ShapelyFeature(self.land, cartopy.crs.PlateCarree(), facecolor=cartopy.feature.COLORS['land'])
+            self.land = cartopy.feature.ShapelyFeature(self.get_new_land(country), cartopy.crs.PlateCarree(), facecolor=cartopy.feature.COLORS['land'])
             self.ax.add_feature(self.land, zorder=1)
             self.ax.add_feature(cartopy.feature.BORDERS, zorder=2)
             self.ax.add_feature(cartopy.feature.COASTLINE, zorder=2)
