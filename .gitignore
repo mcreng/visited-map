@@ -1,2 +1,12 @@
+# cache
 __pycache__
+
+# storage
 *.txt
+
+# vscode config
+.vscode
+
+# build
+main.build
+main.dist

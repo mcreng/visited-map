@@ -15,6 +15,7 @@ else:
     from matplotlib.backends.backend_qt4agg import (
         FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 
+
 class ApplicationWindow(QtWidgets.QMainWindow):
     def __init__(self):
         # Set window param
@@ -44,6 +45,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         Refer on move handler to self.canvas
         """
         self.canvas.on_move(event)
+
 
 if __name__ == "__main__":
     if not QtWidgets.QApplication.instance():

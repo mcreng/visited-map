@@ -3,7 +3,8 @@
 @author: mcreng
 """
 
-import itertools, functools
+import itertools
+import functools
 import cartopy
 import cartopy.io.shapereader as shpreader
 from matplotlib.figure import Figure
@@ -19,6 +20,7 @@ else:
     from matplotlib.backends.backend_qt4agg import (
         FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 
+
 class WorldMapCanvas(FigureCanvas):
     def __init__(self, parent=None, width=8, height=6, dpi=150):
         """
@@ -26,7 +28,8 @@ class WorldMapCanvas(FigureCanvas):
         """
         # Initialize figure and axis
         fig = Figure(figsize=(width, height), dpi=dpi)
-        self.ax = fig.add_subplot(1, 1, 1, projection=cartopy.crs.PlateCarree())
+        self.ax = fig.add_subplot(
+            1, 1, 1, projection=cartopy.crs.PlateCarree())
         self.ax.stock_img()
         self.ax.add_feature(cartopy.feature.LAND, zorder=1)
         self.ax.add_feature(cartopy.feature.BORDERS, zorder=2)
@@ -46,10 +49,11 @@ class WorldMapCanvas(FigureCanvas):
                                                                   category='cultural',
                                                                   name='admin_0_countries')).records()
         tmp, self.countries = itertools.tee(self.countries)
-        self.land = cartopy.feature.ShapelyFeature((c.geometry for c in tmp), cartopy.crs.PlateCarree(), facecolor=cartopy.feature.COLORS['land'])
+        self.land = cartopy.feature.ShapelyFeature(
+            (c.geometry for c in tmp), cartopy.crs.PlateCarree(), facecolor=cartopy.feature.COLORS['land'])
 
         # Initialize filereader
-        self.fr = fr.FileReader('empty.txt')
+        self.fr = fr.FileReader('data.txt')
         # Read file
         self.sel_countries = self.fr.read_countries()
         # Fill in those in file
@@ -88,7 +92,8 @@ class WorldMapCanvas(FigureCanvas):
         """
         # Need an iterable
         if not isinstance(country, itertools.filterfalse):
-            if not country: return
+            if not country:
+                return
             country = [country]
         if button == 1:
             # check if country is empty
@@ -104,7 +109,8 @@ class WorldMapCanvas(FigureCanvas):
             # Redraw all
             self.ax.clear()
             self.ax.stock_img()
-            self.land = cartopy.feature.ShapelyFeature(self.get_new_land(country), cartopy.crs.PlateCarree(), facecolor=cartopy.feature.COLORS['land'])
+            self.land = cartopy.feature.ShapelyFeature(self.get_new_land(
+                country), cartopy.crs.PlateCarree(), facecolor=cartopy.feature.COLORS['land'])
             self.ax.add_feature(self.land, zorder=1)
             self.ax.add_feature(cartopy.feature.BORDERS, zorder=2)
             self.ax.add_feature(cartopy.feature.COASTLINE, zorder=2)
@@ -128,8 +134,10 @@ class WorldMapCanvas(FigureCanvas):
             # Find new self.land to print
             self.land = self.land.geometries()
             # Add back the geometric objects by chaining it to iter
-            self.land = itertools.chain(self.land, (c.geometry for c in country))
-            self.land = cartopy.feature.ShapelyFeature(self.land, cartopy.crs.PlateCarree(), facecolor=cartopy.feature.COLORS['land'])
+            self.land = itertools.chain(
+                self.land, (c.geometry for c in country))
+            self.land = cartopy.feature.ShapelyFeature(
+                self.land, cartopy.crs.PlateCarree(), facecolor=cartopy.feature.COLORS['land'])
             self.ax.add_feature(self.land, zorder=1)
             self.ax.add_feature(cartopy.feature.BORDERS, zorder=2)
             self.ax.add_feature(cartopy.feature.COASTLINE, zorder=2)
@@ -139,7 +147,10 @@ class WorldMapCanvas(FigureCanvas):
             self.flush_events()
             # Delete entries from list
             for c in country2:
-                 self.sel_countries.remove(c.attributes['BRK_A3'])
+                try:
+                    self.sel_countries.remove(c.attributes['BRK_A3'])
+                except:
+                    continue
 
         self.fr.write_countries(self.sel_countries)
 
@@ -150,7 +161,8 @@ class WorldMapCanvas(FigureCanvas):
         local_countries, self.countries = itertools.tee(self.countries)
         try:
             point = Point(x, y)
-            country = next(itertools.filterfalse(lambda country: not country.geometry.intersects(point), local_countries))
+            country = next(itertools.filterfalse(
+                lambda country: not country.geometry.intersects(point), local_countries))
             return country
         except:
             return None
@@ -160,5 +172,6 @@ class WorldMapCanvas(FigureCanvas):
         Return country object based on BRK_A3 code, support a3 as list
         """
         local_countries, self.countries = itertools.tee(self.countries)
-        country = itertools.filterfalse(lambda country: country.attributes['BRK_A3'] not in a3, local_countries)
+        country = itertools.filterfalse(
+            lambda country: country.attributes['BRK_A3'] not in a3, local_countries)
         return country
