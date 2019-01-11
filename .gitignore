@@ -8,5 +8,6 @@ __pycache__
 .vscode
 
 # build
-main.build
-main.dist
+build
+dist
+main.spec
